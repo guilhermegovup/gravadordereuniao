@@ -1,8 +1,56 @@
 # Pauta — gravador de reuniões com IA
 
-App nativo para **macOS** e **iPhone/iPad**, inspirado no fluxo do Plaud: grave uma reunião, receba a transcrição na hora e transforme tudo em ata, notas ou resumo com IA (Claude).
+Grave uma reunião, receba a transcrição na hora e transforme tudo em ata, notas ou resumo com IA (Claude). Inspirado no fluxo do Plaud.
 
-É um único projeto SwiftUI multiplataforma — o mesmo código roda no MacBook e no iPhone.
+O repositório tem **duas versões** do app:
+
+| Versão | Onde roda | Precisa de Xcode? | Sincronização |
+|---|---|---|---|
+| **PWA** (`web/`) — recomendada para começar | Qualquer navegador; instalável no iPhone (Safari → Compartilhar → "Adicionar à Tela de Início") e no Mac | **Não** | Google Drive (pasta "Pauta") |
+| **Nativa** (`Pauta/` + `Pauta.xcodeproj`) | macOS 14+ e iOS 17+ | Sim (Xcode 16+) | — (roadmap: iCloud) |
+
+---
+
+## Versão PWA (sem Xcode)
+
+### Publicar no GitHub Pages (uma vez)
+
+1. Faça o merge deste branch no `main`.
+2. No GitHub, abra **Settings → Pages** e em *Build and deployment* escolha **Source: GitHub Actions**.
+3. O workflow `Publicar PWA no GitHub Pages` roda sozinho e o app fica em `https://guilhermegovup.github.io/gravadordereuniao/`.
+
+### Instalar
+
+- **iPhone:** abra a URL no Safari → botão Compartilhar → **Adicionar à Tela de Início**. O app abre em tela cheia, com ícone próprio.
+- **MacBook:** abra a URL no Safari (Arquivo → Adicionar à Dock) ou no Chrome (ícone de instalar na barra de endereço).
+
+### Configurar a IA
+
+Nos **Ajustes** do app (engrenagem), cole sua chave de API da Anthropic ([obter aqui](https://console.anthropic.com/settings/keys)). A chave fica salva só no navegador e vai direto para a API — não passa por nenhum servidor nosso.
+
+### Configurar o Google Drive (opcional, ~5 minutos, uma vez)
+
+As transcrições e resumos vão para uma pasta **Pauta** no seu Drive, como arquivos Markdown legíveis (e o áudio junto, se quiser). É isso que sincroniza MacBook ↔ iPhone: grave num aparelho, toque em "Enviar ao Drive", e no outro use "Importar do Drive".
+
+1. Acesse <https://console.cloud.google.com/> com sua conta Google e crie um projeto (ex.: "Pauta").
+2. Em **APIs e serviços → Biblioteca**, ative a **Google Drive API**.
+3. Em **APIs e serviços → Tela de permissão OAuth**, configure como *Externo*, preencha nome e e-mail e adicione seu e-mail como *usuário de teste*.
+4. Em **APIs e serviços → Credenciais → Criar credenciais → ID do cliente OAuth**, tipo **Aplicativo da Web**, e em *Origens JavaScript autorizadas* adicione `https://guilhermegovup.github.io`.
+5. Copie o **Client ID** gerado (termina em `.apps.googleusercontent.com`) e cole nos Ajustes do app, em Google Drive.
+
+O app usa o escopo `drive.file`: ele só enxerga os arquivos que ele mesmo criou — nada além da pasta Pauta.
+
+### Limitações honestas da PWA
+
+- **No iPhone, a gravação para se a tela bloquear ou você trocar de app** (limitação do Safari para páginas web). O app mantém a tela acesa durante a gravação para atenuar; para gravar com a tela apagada, use a versão nativa.
+- A transcrição ao vivo usa o reconhecimento de voz do navegador (Web Speech API). Funciona bem em pt-BR no Safari e no Chrome, mas em alguns aparelhos pode conflitar com a gravação — se acontecer, desligue "Transcrever ao vivo" nos Ajustes (a gravação continua e você pode gerar o resumo a partir do áudio em outra ferramenta).
+- Os áudios ficam no armazenamento do navegador (IndexedDB). O app pede armazenamento persistente, mas o backup no Drive é a garantia real.
+
+---
+
+## Versão nativa (SwiftUI)
+
+App nativo para **macOS** e **iPhone/iPad** — um único projeto SwiftUI multiplataforma, com transcrição on-device (offline) e gravação em segundo plano no iPhone.
 
 ## Funcionalidades
 
