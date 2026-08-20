@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pauta — gravador de reuniões</title>
+  <meta name="description" content="Grave reuniões, transcreva na hora e gere atas com IA.">
+  <meta name="theme-color" content="#12151C">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-180.png">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pauta">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <h1>Pauta</h1>
+    </div>
+    <div class="topbar-actions">
+      <span id="drive-badge" class="drive-badge" hidden title="Conectado ao Google Drive">Drive</span>
+      <button id="btn-settings" class="icon-btn" title="Ajustes" aria-label="Ajustes">⚙</button>
+    </div>
+  </header>
+
+  <main class="layout" id="layout">
+    <!-- Lista -->
+    <section class="pane pane-list" id="pane-list">
+      <div class="searchbox">
+        <input type="search" id="search" placeholder="Buscar em títulos e transcrições" autocomplete="off">
+      </div>
+      <ul class="rec-list" id="rec-list"></ul>
+      <div class="empty" id="empty-state" hidden>
+        <div class="empty-mark" aria-hidden="true">● ▮▮▮</div>
+        <p>Nenhuma gravação ainda.</p>
+        <p class="muted">Toque no botão vermelho para capturar sua primeira reunião.</p>
+      </div>
+      <button class="fab" id="btn-record" title="Gravar (nova gravação)">
+        <span class="fab-dot" aria-hidden="true"></span> Gravar
+      </button>
+    </section>
+
+    <!-- Detalhe -->
+    <section class="pane pane-detail" id="pane-detail" hidden>
+      <div class="detail-top">
+        <button class="icon-btn only-mobile" id="btn-back" aria-label="Voltar">←</button>
+        <input class="title-input" id="detail-title" placeholder="Título da gravação">
+        <button class="icon-btn" id="btn-more" aria-label="Mais ações">⋯</button>
+      </div>
+      <p class="meta" id="detail-meta"></p>
+
+      <div class="player" id="player">
+        <button class="player-play" id="btn-play" aria-label="Reproduzir">▶</button>
+        <span class="mono" id="player-pos">00:00</span>
+        <input type="range" id="player-seek" min="0" max="100" step="0.1" value="0" aria-label="Posição">
+        <span class="mono" id="player-dur">00:00</span>
+        <button class="chip" id="btn-rate" title="Velocidade">1x</button>
+      </div>
+      <p class="muted small" id="audio-note" hidden></p>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab active" id="tab-transcript" role="tab">Transcrição</button>
+        <button class="tab" id="tab-summary" role="tab">Resumo IA</button>
+      </nav>
+
+      <div class="tabpane" id="pane-transcript">
+        <article class="doc" id="transcript-view"></article>
+        <div class="empty" id="transcript-empty" hidden>
+          <p class="muted">Esta gravação não tem transcrição.</p>
+        </div>
+      </div>
+
+      <div class="tabpane" id="pane-summary" hidden>
+        <div class="summary-setup" id="summary-setup">
+          <label for="template-select" class="muted small">Modelo de resumo</label>
+          <select id="template-select"></select>
+          <button class="btn gold" id="btn-summary">✦ Gerar resumo com IA</button>
+        </div>
+        <p class="muted small" id="summary-status" hidden></p>
+        <article class="doc" id="summary-view"></article>
+      </div>
+
+      <p class="error" id="detail-error" hidden></p>
+    </section>
+  </main>
+
+  <!-- Fita de gravação -->
+  <div class="record-overlay" id="record-overlay" hidden>
+    <div class="tape">
+      <div class="tape-head">
+        <span class="rec-indicator" id="rec-indicator"><span class="rec-dot"></span> <span id="rec-state">Gravando</span></span>
+        <span class="tape-lang muted small" id="rec-lang"></span>
+      </div>
+      <div class="tape-timer mono" id="rec-timer">00:00</div>
+      <canvas class="tape-wave" id="rec-wave" height="80"></canvas>
+      <div class="tape-transcript" id="rec-transcript" aria-live="polite">
+        <span class="muted">A transcrição ao vivo aparece aqui enquanto você fala…</span>
+      </div>
+      <p class="error small" id="rec-error" hidden></p>
+      <div class="tape-controls">
+        <button class="ctrl" id="btn-rec-pause" aria-label="Pausar">⏸</button>
+        <button class="ctrl stop" id="btn-rec-stop" aria-label="Encerrar e salvar">■</button>
+        <button class="ctrl" id="btn-rec-cancel" aria-label="Descartar">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu de ações -->
+  <div class="sheet-backdrop" id="actions-backdrop" hidden>
+    <div class="sheet" role="menu">
+      <button class="sheet-item" id="act-title">✦ Sugerir título com IA</button>
+      <button class="sheet-item" id="act-copy-transcript">Copiar transcrição</button>
+      <button class="sheet-item" id="act-copy-summary">Copiar resumo</button>
+      <button class="sheet-item" id="act-download">Baixar áudio</button>
+      <button class="sheet-item" id="act-drive">Enviar ao Google Drive</button>
+      <button class="sheet-item" id="act-drive-audio">Baixar áudio do Drive</button>
+      <button class="sheet-item danger" id="act-delete">Apagar gravação</button>
+      <button class="sheet-item muted" id="act-close">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Ajustes -->
+  <div class="sheet-backdrop" id="settings-backdrop" hidden>
+    <div class="sheet settings" role="dialog" aria-label="Ajustes">
+      <h2>Ajustes</h2>
+
+      <section>
+        <h3>Inteligência artificial</h3>
+        <label for="set-apikey">Chave de API da Anthropic</label>
+        <input type="password" id="set-apikey" placeholder="sk-ant-…" autocomplete="off">
+        <label for="set-model">Modelo</label>
+        <select id="set-model">
+          <option value="claude-opus-5">Claude Opus 5 — recomendado</option>
+          <option value="claude-sonnet-5">Claude Sonnet 5 — mais barato</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5 — mais rápido</option>
+        </select>
+        <p class="muted small">A chave fica salva apenas neste navegador e é enviada só para a API da Anthropic. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Obter uma chave</a>.</p>
+      </section>
+
+      <section>
+        <h3>Transcrição</h3>
+        <label for="set-lang">Idioma</label>
+        <select id="set-lang">
+          <option value="pt-BR">Português (Brasil)</option>
+          <option value="en-US">English (US)</option>
+          <option value="es-ES">Español</option>
+        </select>
+        <label class="check"><input type="checkbox" id="set-live" checked> Transcrever ao vivo durante a gravação</label>
+        <p class="muted small">A transcrição usa o reconhecimento de voz do navegador. Se a gravação falhar no seu aparelho com a transcrição ligada, desative esta opção.</p>
+      </section>
+
+      <section>
+        <h3>Google Drive</h3>
+        <label for="set-client">Client ID do OAuth (Google Cloud)</label>
+        <input type="text" id="set-client" placeholder="1234…apps.googleusercontent.com" autocomplete="off">
+        <label class="check"><input type="checkbox" id="set-autodrive"> Enviar cada gravação ao Drive automaticamente</label>
+        <label class="check"><input type="checkbox" id="set-driveaudio" checked> Incluir o arquivo de áudio no envio</label>
+        <div class="row">
+          <button class="btn" id="btn-drive-connect">Conectar ao Drive</button>
+          <button class="btn" id="btn-drive-import">Importar do Drive</button>
+        </div>
+        <p class="muted small">As transcrições e resumos vão para a pasta <strong>Pauta</strong> do seu Drive como arquivos Markdown legíveis. Veja no README como criar o Client ID (5 minutos, uma vez só).</p>
+      </section>
+
+      <div class="row">
+        <button class="btn gold" id="btn-settings-save">Salvar ajustes</button>
+        <button class="btn" id="btn-settings-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

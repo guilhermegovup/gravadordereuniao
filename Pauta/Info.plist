@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Pauta usa o microfone para gravar suas reuniões e notas de voz.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>O Pauta usa o reconhecimento de fala do aparelho para transcrever suas gravações. O áudio não sai do dispositivo.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+</dict>
+</plist>
