@@ -13,11 +13,9 @@ O repositório tem **duas versões** do app:
 
 ## Versão PWA (sem Xcode)
 
-### Publicar no GitHub Pages (uma vez)
+### Endereço do app
 
-1. Faça o merge deste branch no `main`.
-2. No GitHub, abra **Settings → Pages** e em *Build and deployment* escolha **Source: GitHub Actions**.
-3. O workflow `Publicar PWA no GitHub Pages` roda sozinho e o app fica em `https://guilhermegovup.github.io/gravadordereuniao/`.
+O app está publicado em **<https://guilhermegovup.github.io/gravadordereuniao/>** (GitHub Pages, servido pelo branch `gh-pages`). Qualquer alteração em `web/` que chegue ao `main` é republicada automaticamente pelo workflow `Publicar PWA no GitHub Pages`.
 
 ### Instalar
 
